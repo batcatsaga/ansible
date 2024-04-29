@@ -1,0 +1,131 @@
+---
+- name: Deploy portainer-ce latest
+  hosts: all
+
+  tasks:
+    - name: Create new volume
+      community.docker.docker_volume:
+        name: portainer-data
+
+    - name: Deploy portainer
+      community.docker.docker_container:
+        name: portainer
+        image: "docker.io/portainer/portainer-ce"
+        ports:
+          - "9443:9443"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - portainer-data:/data
+        restart_policy: unless-stopped
+
+    - name: Deploy Plex
+      community.docker.docker_container:
+        name: plex
+        image: lscr.io/linuxserver/plex:latest
+        ports:
+        volumes: 
+          - /home/batcat/docker/plex/config:/config
+          - /mnt/media/storage/medialibrary:/storage/medialibrary
+          - /mnt/media/transcode:/transcode
+        env:
+          PUID=1000
+          PGID=1000
+          TZ=Europe/ISTANBUL
+          VERSION=docker
+          PLEX_CLAIM=
+        network_mode: host
+        restart_policy: unless-stopped
+
+    - name: Deploy Radarr
+      community.docker.docker_container:
+        name: radarr
+        image: lscr.io/linuxserver/radarr:latest
+        env:
+          PUID=1000
+          PGID=1000
+          TZ=Europe/ISTANBUL
+        volumes:
+          - /home/batcat/.config/appdata/radarr:/config
+          - /etc/localtime:/etc/localtime
+          - /mnt/media/storage:/storage
+        ports:
+          "7878:7878"
+        restart_policy: unless-stopped
+
+    - name: Deploy Sonarr
+      community.docker.docker_container:
+        name: sonarr
+        image: lscr.io/linuxserver/sonarr:latest
+        env:
+          PUID=1000
+          PGID=1000
+          TZ=Europe/ISTANBUL
+        volumes:
+          - /home/batcat/.config/appdata/sonarr:/config
+          - /etc/localtime:/etc/localtime
+          - /mnt/media/storage:/storage
+        ports:
+          "8989:8989"
+        restart_policy: unless-stopped
+
+    - name: Deploy Bazarr
+      community.docker.docker_container:
+        name: bazarr
+        image: lscr.io/linuxserver/bazarr:latest
+        env:
+          PUID=1000
+          PGID=1000
+          TZ=Europe/ISTANBUL
+        volumes:
+          - /home/batcat/.config/appdata/bazarr:/config
+          - /etc/localtime:/etc/localtime
+          - /mnt/media/storage:/storage
+        ports:
+          "6767:6767"
+        restart_policy: unless-stopped
+
+    - name: Deploy Jackett
+      community.docker.docker_container:
+        name: jackett
+        image: lscr.io/linuxserver/jackett:latest
+        env:
+          PUID=1000
+          PGID=1000
+          TZ=Europe/Istanbul
+        volumes:
+          - /home/batcat/.config/appdata/jackett:/config
+          - /mnt/media/storage:/downloads
+        ports:
+          "9117:9117"
+        restart_policy: unless-stopped
+
+    - name: Deploy Qbittorrent
+      community.docker.docker_container:
+        name: qbittorrent
+        image: lscr.io/linuxserver/qbittorrent:latest
+        env:
+          PUID=1000
+          PGID=1000
+          TZ=Europe/Istanbul
+          WEBUI_PORT=8080
+        volumes:
+          - /home/batcat/.config/appdata/qbittorrent:/config
+          - /mnt/media/storage/downloads:/downloads
+        ports:
+          - "8080:8080"
+          - "6882:6882"
+          - "6882:6882/udp"
+        restart_policy: unless-stopped
+
+    - name: Deploy Overseerr
+      community.docker.docker_container:
+        name: overseerr
+        image: sctx/overseerr:latest
+        env:
+          LOG_LEVEL=debug
+          TZ=Europe/Istanbul
+        volumes:
+          - /home/batcat/.config/appdata/overseerr:/app/config
+        ports:
+          "5055:5055"
+        restart_policy: unless-stopped
