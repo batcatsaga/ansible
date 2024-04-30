@@ -129,3 +129,16 @@
         ports:
           "5055:5055"
         restart_policy: unless-stopped
+
+    - name: Deploy Tautulli
+      community.docker.docker_container:
+        name: tautulli
+        image: ghcr.io/tautulli/tautulli
+        env:
+          LOG_LEVEL=debug
+          TZ=Europe/Istanbul
+        volumes:
+          - /home/batcat/.config/appdata/tautulli:/app/config
+        ports:
+          "8181:8181"
+        restart_policy: unless-stopped
